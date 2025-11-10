@@ -1,0 +1,87 @@
+// after insert,after delete,after update
+DROP TRIGGER IF EXISTS lib_audit_insert;
+DROP TRIGGER IF EXISTS lib_audit_update;
+DROP TRIGGER IF EXISTS lib_audit_delete;
+DROP TABLE IF EXISTS T4;
+DROP TABLE IF EXISTS T3;
+
+
+CREATE TABLE T3 ( 
+  Roll_no   INT(10) NOT NULL,  
+  name      VARCHAR(50),  
+  issuedate DATE, 
+  book      VARCHAR(10), 
+  status    CHAR(1), 
+  CONSTRAINT pk1_T3 PRIMARY KEY (Roll_no) 
+); 
+
+CREATE TABLE T4 ( 
+  Roll_no   INT(10) NOT NULL,  
+  name      VARCHAR(50),  
+  issuedate DATE, 
+  book      VARCHAR(10), 
+  status    CHAR(1), 
+  ts        TIMESTAMP 
+); 
+
+
+INSERT INTO T3 (Roll_no, name, issuedate, book, status) VALUES
+  (101, 'Sita', '2022-12-22', 'TOC', 'I'),
+  (102, 'Mita', '2023-09-20', 'TOC', 'I'),
+  (103, 'Gita', '2023-11-12', 'TOC', 'I');
+
+SELECT * FROM T3; 
+
+
+TRUNCATE TABLE T3; 
+TRUNCATE TABLE T4; 
+
+
+DELIMITER $$
+
+CREATE TRIGGER lib_audit_insert
+AFTER INSERT ON T3
+FOR EACH ROW 
+BEGIN 
+  INSERT INTO T4 (roll_no, name, issuedate, book, status, ts) 
+  VALUES (NEW.roll_no, NEW.name, NEW.issuedate, NEW.book, NEW.status, NOW()); 
+END$$
+
+
+CREATE TRIGGER lib_audit_update
+AFTER UPDATE ON T3
+FOR EACH ROW 
+BEGIN 
+  -- Log the OLD data before the change
+  INSERT INTO T4 (roll_no, name, issuedate, book, status, ts) 
+  VALUES (OLD.roll_no, OLD.name, OLD.issuedate, OLD.book, OLD.status, NOW());
+  -- Log the NEW data after the change
+  INSERT INTO T4 (roll_no, name, issuedate, book, status, ts) 
+  VALUES (NEW.roll_no, NEW.name, NEW.issuedate, NEW.book, NEW.status, NOW()); 
+END$$
+
+
+CREATE TRIGGER lib_audit_delete
+AFTER DELETE ON T3
+FOR EACH ROW 
+BEGIN 
+  INSERT INTO T4 (roll_no, name, issuedate, book, status, ts) 
+  VALUES (OLD.roll_no, OLD.name, OLD.issuedate, OLD.book, OLD.status, NOW()); 
+END$$
+
+DELIMITER ;
+
+
+
+INSERT INTO T3 VALUES (104, 'ABCD', '2024-08-12', 'AI', 'I'); 
+SELECT * FROM T3; 
+SELECT * FROM T4; -- This will show one new row
+
+
+UPDATE T3 SET name='Nita' WHERE roll_no=104; 
+SELECT * FROM T4; -- This will show three rows total (1 INSERT, 2 UPDATE)
+
+
+DELETE FROM T3 WHERE roll_no=104; 
+SELECT * FROM T3; -- This will be empty
+SELECT * FROM T4; -- This will show four rows total (1 INSERT, 2 UPDATE, 1 DELETE)

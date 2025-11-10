@@ -1,0 +1,80 @@
+//fetch roll number and info
+DROP TABLE IF EXISTS N_ROLL;
+
+DROP TABLE IF EXISTS O_ROLL;
+
+DROP PROCEDURE IF EXISTS MergeRolls;
+
+
+CREATE TABLE O_ROLL 
+( 
+  rollno INT(10) NOT NULL,  
+  name   VARCHAR(50),  
+  gender CHAR(1), 
+  CONSTRAINT pk1_o PRIMARY KEY (rollno) 
+); 
+
+CREATE TABLE N_ROLL 
+( 
+  rollno INT(10) NOT NULL,  
+  name   VARCHAR(50),  
+  gender CHAR(1) 
+); 
+
+
+INSERT INTO O_ROLL VALUES (2001, 'xyz', 'M'); 
+INSERT INTO O_ROLL VALUES (2002, 'pqr', 'F'); 
+INSERT INTO O_ROLL VALUES (2005, 'abc', 'F'); 
+INSERT INTO N_ROLL VALUES (2001, 'xyz', 'M'); 
+
+
+DELIMITTER $$
+CREATE PROCEDURE MergeRolls()
+BEGIN
+  -- Declare variables
+  DECLARE a INT(10); 
+  DECLARE b VARCHAR(50); 
+  DECLARE c CHAR(1); 
+  DECLARE n INT;
+  
+  
+  DECLARE done INT DEFAULT FALSE;
+  
+  
+  DECLARE rollcall CURSOR FOR  
+    SELECT rollno, name, gender FROM O_ROLL; 
+    
+  
+  DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = TRUE;
+
+  OPEN rollcall; 
+  
+  read_loop: LOOP 
+    FETCH rollcall INTO a, b, c; 
+    
+
+    IF done THEN
+      LEAVE read_loop;
+    END IF;
+    
+  
+    SELECT COUNT(*) INTO n FROM N_ROLL WHERE rollno = a; 
+    
+    IF n > 0 THEN 
+      SELECT CONCAT('Data already exists for Roll No: ', a) AS Message; 
+    ELSE 
+      INSERT INTO N_ROLL VALUES (a, b, c); 
+      SELECT CONCAT('Inserted Roll No: ', a) AS Message; 
+    END IF; 
+    
+  END LOOP; 
+  
+  CLOSE rollcall; 
+END$$
+DELIMITTER ;
+
+
+CALL MergeRolls();
+
+
+SELECT * FROM N_ROLL;

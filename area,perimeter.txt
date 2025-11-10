@@ -1,0 +1,46 @@
+//calculate area and perimeter
+DROP TABLE IF EXISTS AREA;
+
+DROP PROCEDURE IF EXISTS Calculate_Areas;
+
+
+CREATE TABLE AREA ( 
+    radius INT(5), 
+    area DECIMAL(14,2), 
+    perimeter DECIMAL(14,2) 
+);
+
+TRUNCATE TABLE AREA; 
+
+
+DELIMITER $$
+CREATE PROCEDURE Calculate_Areas()
+BEGIN 
+    
+    DECLARE r INT(5);
+    DECLARE area DECIMAL(14,2);
+    DECLARE peri DECIMAL(14,2);
+    DECLARE pi DECIMAL(4,2) DEFAULT 3.14; 
+    
+    SET r = 1;  
+    
+    
+    WHILE r <= 7 DO 
+        
+        SET area = pi * POWER(r, 2); 
+        SET peri = 2 * pi * r; 
+        
+     
+        INSERT INTO AREA (radius, area, perimeter) VALUES (r, area, peri); 
+        
+       
+        SET r = r + 1; 
+    END LOOP; 
+END$$
+DELIMITER ;
+
+
+CALL Calculate_Areas(); 
+
+
+SELECT * FROM AREA;

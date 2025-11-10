@@ -1,0 +1,53 @@
+//foreign key
+
+1
+CREATE TABLE Department1 
+( 
+  dept_id INT(3) PRIMARY KEY, 
+  dept_name VARCHAR(50) 
+);
+
+-- 2. 
+CREATE TABLE Employee6 
+( 
+  emp_id INT(5) PRIMARY KEY AUTO_INCREMENT, 
+  emp_name VARCHAR(50), 
+  dept_id INT(3), 
+  salary DECIMAL(8, 2) 
+); 
+
+-- 3.
+ALTER TABLE Employee6 AUTO_INCREMENT = 1001;
+
+-- 4. 
+ALTER TABLE Employee6 
+ADD CONSTRAINT fk_dept 
+FOREIGN KEY (dept_id) 
+REFERENCES Department1(dept_id); 
+
+-- 5. 
+INSERT INTO Department1 (dept_id, dept_name) 
+VALUES (101, 'HR'); 
+
+-- 6. 
+INSERT INTO Employee6 (emp_name, dept_id, salary) 
+VALUES ('John Doe', 101, 75000); 
+
+-- 7. 
+CREATE VIEW Emp_View1 AS 
+SELECT emp_name, salary 
+FROM Employee6 
+WHERE salary > 50000; 
+
+-- 8.
+CREATE INDEX idx_emp_name1 ON Employee6(emp_name); 
+
+-- 9. 
+CREATE VIEW emp_syn1 AS 
+SELECT * FROM Employee6;
+
+-- 10.
+SELECT * FROM Emp_View1; 
+
+-- 11. 
+SELECT * FROM emp_syn1;

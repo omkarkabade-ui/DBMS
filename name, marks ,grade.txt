@@ -1,0 +1,70 @@
+//name , marks , grade 
+DROP TABLE IF EXISTS Y;
+
+DROP TABLE IF EXISTS X;
+
+DROP PROCEDURE IF EXISTS Grade;
+
+
+CREATE TABLE X 
+( 
+  Roll_no INT(10) NOT NULL,  
+  name    VARCHAR(50),  
+  Marks   INT(10), 
+  CONSTRAINT pk1_x PRIMARY KEY (Roll_no) 
+); 
+
+CREATE TABLE Y 
+( 
+  Roll_no INT(10) NOT NULL,  
+  name    VARCHAR(50),  
+  marks   INT(10), 
+  result  VARCHAR(50) 
+); 
+
+
+INSERT INTO X VALUES (2001, 'xyz', 999); 
+
+INSERT INTO X VALUES (2002, 'pqr', 500); 
+
+
+DELIMITER $$
+CREATE PROCEDURE Grade(IN rnum INT)
+BEGIN 
+  
+  DECLARE mrks  INT; 
+  DECLARE s_name VARCHAR(50); 
+  DECLARE v_GRADE  VARCHAR(50); 
+
+  
+  SELECT name, marks INTO s_name, mrks FROM X WHERE Roll_no = rnum; 
+
+
+  IF mrks <= 1500 AND mrks >= 990 THEN 
+    SET v_GRADE = 'DISTINCTION'; 
+  ELSEIF mrks <= 989 AND mrks >= 900 THEN 
+    SET v_GRADE = 'FIRST CLASS'; 
+  ELSEIF mrks <= 899 AND mrks >= 825 THEN 
+    SET v_GRADE = 'HIGHER SECOND CLASS'; 
+  ELSE 
+    SET v_GRADE = 'PASS CLASS';  
+  END IF; 
+
+  
+  INSERT INTO Y VALUES (rnum, s_name, mrks, v_GRADE); 
+
+ 
+  SELECT 
+    rnum AS 'ROLL_No', 
+    s_name AS 'NAME', 
+    mrks AS 'MARKS', 
+    v_GRADE AS 'GRADE';
+END$$
+DELIMITER ;
+
+
+SELECT 'ENTER THE ROLL NUMBER OF THE STUDENT: 2001' AS 'Action';
+CALL Grade(2001); 
+
+SELECT * FROM Y; 
+SELECT * FROM X;

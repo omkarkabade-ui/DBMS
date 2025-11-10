@@ -1,0 +1,89 @@
+//library 
+DROP TABLE IF EXISTS B;
+
+DROP TABLE IF EXISTS A;
+
+DROP PROCEDURE IF EXISTS Calculate_Fine;
+
+CREATE TABLE A (
+  Rollno INT(10) NOT NULL, 
+  name VARCHAR(50), 
+  Date_of_issue DATE, 
+  name_of_book VARCHAR(10), 
+  Status VARCHAR(1), 
+  CONSTRAINT chk1 CHECK(Status IN('I','R')), 
+  CONSTRAINT pk1 PRIMARY KEY (Rollno) 
+);
+
+CREATE TABLE B (
+  Rollno INT(10) NOT NULL, 
+  Date_of_Return DATE, 
+  Fine INT(10) 
+);
+
+
+INSERT INTO A VALUES(1,'Sita','2021-06-12','DBMS','I'); 
+INSERT INTO A VALUES(2,'Gita','2024-06-22','DBMS','I'); 
+INSERT INTO A VALUES(3,'Swati','2023-07-20','DBMS','I'); 
+INSERT INTO A VALUES(4,'Nita','2022-07-02','DBMS','I'); 
+
+INSERT INTO A (Rollno, name, Date_of_issue, name_of_book, Status) 
+VALUES 
+  (5, 'Sham','2022-12-22','CN','I'),
+  (6, 'Ram','2022-08-22','CN','I'),
+  (7, 'Aryan','2022-07-12','CN','I');
+
+
+INSERT INTO A (Rollno, name, Date_of_issue, name_of_book, Status) 
+VALUES 
+  (10, 'Chintu','2022-12-22','TOC','I'),
+  (11, 'Raj','2023-09-20','TOC','I'),
+  (12, 'Priya','2023-11-12','TOC','I');
+
+INSERT INTO A VALUES (13, 'Chintu','2022-12-22','TOC','I');
+
+
+DELIMITER $$
+CREATE PROCEDURE Calculate_Fine(IN p_roll INT, IN p_bkn VARCHAR(50))
+BEGIN
+  DECLARE v_idate DATE;
+  DECLARE v_days INT;
+  DECLARE v_fineamt INT DEFAULT 0;
+
+
+  SELECT Date_of_issue INTO v_idate 
+  FROM A 
+  WHERE Rollno = p_roll AND name_of_book = p_bkn;
+
+
+  SET v_days = DATEDIFF(CURDATE(), v_idate);
+
+  
+  IF (v_days > 15) AND (v_days < 30) THEN
+    SET v_fineamt = v_days * 5;
+  ELSEIF (v_days >= 30) THEN
+    SET v_fineamt = v_days * 10;
+  END IF;
+
+
+  INSERT INTO B VALUES (p_roll, CURDATE(), v_fineamt);
+
+
+  UPDATE A SET Status='R' WHERE Rollno = p_roll AND name_of_book = p_bkn;
+
+
+  SELECT 
+    p_roll AS 'Roll_Number',
+    p_bkn AS 'Book_Name',
+    v_idate AS 'Issue_Date',
+    v_days AS 'No_of_Days',
+    v_fineamt AS 'FINE';
+
+END$$
+DELIMITER ;
+
+
+CALL Calculate_Fine(1, 'DBMS');
+
+SELECT * FROM A;
+SELECT * FROM B;
